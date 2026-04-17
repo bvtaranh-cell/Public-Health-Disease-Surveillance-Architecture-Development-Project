@@ -1,87 +1,152 @@
-# Hospital Aggregation Project
+# Public Health Disease Surveillance Architecture Development
 
-## Overview
+## Project Overview
 
-This project contains a Jupyter notebook that aggregates COVID-19 related condition data from FHIR JSON bundles stored in hospital-specific folders. The notebook extracts COVID diagnoses from Condition resources, consolidates them into a single Pandas DataFrame, and exports the result as a CSV file.
+This project focuses on designing and implementing a public health disease surveillance system using interoperable healthcare technologies. The goal was to simulate real-world data flow between hospitals, electronic health record (EHR) systems, and a centralized Health Information Exchange (HIE) to monitor and analyze disease outbreaks such as COVID-19.
 
-## Files Included
+The system integrates FHIR-based data exchange, synthetic patient data generation, and analytics dashboards to support public health decision-making.
 
-- `Hospital_Aggregation (1).ipynb` - Main notebook for importing, filtering, and aggregating COVID condition records from FHIR JSON files.
-- `Architecture Development Part 1 (1) (1).pdf` through `Architecture Development Part 6 (1).pdf` - Supporting architecture documentation.
-- `response.code (1).png` - Additional image asset.
+## Objectives
 
-## Data Source
+- Build a multi-hospital simulation environment using virtual machines
+- Generate synthetic patient and outbreak data
+- Implement FHIR-based interoperability using a HAPI-FHIR server
+- Integrate EHR systems (OpenEMR) with FHIR
+- Enable data aggregation and visualization for outbreak detection
+- Analyze trends and identify patterns in disease spread
 
-The notebook is configured to read from Google Drive in a Google Colab environment:
+## System Architecture
 
-- `main_folder = "/content/drive/MyDrive/fhir"`
+The architecture consists of:
 
-Each hospital should have its own subfolder under this path, and each subfolder should contain FHIR bundle JSON files.
+- Multiple hospital nodes (Aspirus, Portage, BCMH, MGH)
+- A centralized UPHIE (Health Information Exchange) server
+- Data exchange via HL7 FHIR APIs
+- Synthetic data generation using Synthea
+- Visualization using Looker Studio
 
-## What It Does
+All virtual machines were successfully configured and networked, ensuring communication across systems.
 
-The notebook performs the following steps:
+## Technologies Used
 
-1. Mounts Google Drive using `google.colab.drive`.
-2. Scans each hospital folder under the main FHIR directory.
-3. Loads each `.json` file and reads the FHIR `entry` array.
-4. Keeps only `Condition` resources.
-5. Filters records where the condition text contains `COVID` or `CORONAVIRUS`.
-6. Extracts fields such as hospital name, file name, patient reference, condition text, onset date, and encounter reference.
-7. Creates a Pandas DataFrame and exports it to CSV.
+- HAPI-FHIR Server
+- Postman
+- OpenEMR
+- Synthea
+- Docker and Linux (Ubuntu)
+- Apache and MySQL
+- Looker Studio
+- Python (Jupyter Notebook)
 
-## Output
+## Implementation Steps
 
-The aggregated data is written to:
+### 1. Virtual Machine Setup
 
-- `/content/aggregated_covid_data.csv`
+- Configured five virtual machines representing hospitals and HIE
+- Verified connectivity using ping tests
+- Ensured compatibility with OpenEMR and HAPI-FHIR
 
-This CSV can be used directly in reporting tools such as Google Looker Studio.
+### 2. OpenEMR Installation and Security
 
-## Requirements
+- Installed and configured OpenEMR
 
-The notebook uses the following Python libraries:
-
-- `pandas`
-- `json`
-- `os`
-- `google.colab`
-
-If running locally, install dependencies with:
+Secured MySQL using:
 
 ```bash
-pip install pandas
+sudo mysql_secure_installation
 ```
 
-## Usage
+Updated Apache configuration to restrict access
 
-### In Google Colab
+Security limitations identified:
 
-1. Open `Hospital_Aggregation (1).ipynb` in Google Colab.
-2. Run the cell that mounts Google Drive.
-3. Confirm the FHIR data path is correct: `/content/drive/MyDrive/fhir`.
-4. Execute all cells.
-5. Download the generated CSV from `/content/aggregated_covid_data.csv`.
+- Use of HTTP instead of HTTPS
+- Risk of session hijacking due to unencrypted cookies
 
-### In Local Jupyter
+### 3. Synthetic Data Generation (Synthea)
 
-To run locally, update the `main_folder` path to a local directory and remove or replace the Google Drive mount cell.
+- Generated patient data for multiple hospitals
+- Simulated outbreak distributions
 
-Example:
+| Hospital | Population % | COVID Patients |
+| --- | --- | --- |
+| Aspirus | 0.4% | 20 |
+| Portage Health | 0.5% | 45 |
+| BCMH | 2% | 140 |
+| MGH | 6% | 1200 |
 
-```python
-main_folder = "C:/path/to/fhir"
+Challenges included:
+
+- Java compatibility issues
+- Converting percentages into patient counts
+- Managing large FHIR JSON datasets
+
+### 4. HAPI-FHIR Server Setup
+
+- Installed and configured HAPI-FHIR server
+- Verified system resources and port availability
+
+Used commands such as:
+
+```bash
+free -h
+sudo lsof -i :8080
 ```
 
-## Notes
+### 5. FHIR API Integration
 
-- The notebook currently filters condition text using string matching on `COVID` or `CORONAVIRUS`.
-- If your FHIR data uses coded values instead of plain text, the filter logic may need to be updated.
-- The included architecture PDFs appear to document development phases and may be used for design reference.
+- Created FHIR resources using POST requests in Postman
 
-## Suggested Improvements
+Example endpoint:
 
-- Add error handling for malformed JSON files.
-- Extend filtering to support coded conditions or additional COVID-related terms.
-- Parameterize input folder and output path.
-- Add a notebook cell to summarize data by date or hospital.
+```text
+http://localhost:8090/fhir/Practitioner
+```
+
+Successfully received 201 Created responses
+
+Error handling included:
+
+- 400 Bad Request
+- 404 Not Found
+- 500 Internal Server Error
+
+### 6. Data Aggregation and Visualization
+
+- Aggregated hospital data using Python
+- Built dashboards in Looker Studio
+
+Key observations:
+
+- Certain hospitals reported higher case counts
+- Sharp increases in diagnosis dates indicated outbreak spikes
+
+## Key Outcomes
+
+- Developed an end-to-end disease surveillance pipeline
+- Enabled real-time FHIR-based data exchange
+- Simulated outbreak scenarios across multiple hospitals
+- Identified actionable public health insights
+
+## Challenges
+
+- Environment setup and dependency conflicts
+- Managing large-scale healthcare datasets
+- Debugging API and JSON formatting errors
+- Security limitations in OpenEMR
+
+## Future Improvements
+
+- Implement HTTPS for secure communication
+- Add real-time data streaming
+- Integrate machine learning for outbreak prediction
+- Implement OAuth2 or SMART on FHIR authentication
+- Deploy system on cloud infrastructure
+
+## Project Dashboard
+
+https://lookerstudio.google.com/reporting/511128a2-9460-4cdf-911b-dac3f8fe3171
+
+## Conclusion
+
+This project demonstrates how interoperability standards such as FHIR, combined with synthetic data and analytics tools, can be used to build scalable public health surveillance systems. It highlights both the capabilities and challenges of integrating distributed healthcare systems for real-time disease monitoring.
